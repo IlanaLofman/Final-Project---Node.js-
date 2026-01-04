@@ -1,235 +1,262 @@
-# Cost Manager – RESTful Web Services
+Cost Manager RESTful Web Services 
 
-## General Description
+Welcome to the Cost Manager RESTful Web Services project! This application was developed as part of the Asynchronous Server-Side Development course. It provides a backend system for managing users’ expenses, generating monthly reports, and supporting efficient cost tracking and budgeting.
 
-This project was developed as part of the **Asynchronous Server-Side Development** course. It implements a RESTful backend system for managing costs (Cost Manager) and is intended to serve as the server side for a future client application.
+The project strictly follows the official course requirements and implements all mandatory features, endpoints, and architectural constraints.
 
-The system enables user management, adding cost items, generating monthly reports, viewing logs, and accessing administrative information, fully complying with the official course requirements.
+📊 Database
 
----
+Database Type: MongoDB (MongoDB Atlas)
 
-## Technologies
+The database design follows the Computed Design Pattern to efficiently generate and store monthly reports for past months.
 
-* Node.js
-* Express.js
-* MongoDB Atlas
-* Mongoose
-* Pino (Logging)
-* dotenv (.env)
-* JavaScript (according to the course Style Guide)
+Collections
+1️⃣ users (Default User Exists)
+Property	Type	Example
+id	Number	123123
+first_name	String	"mosh"
+last_name	String	"israeli"
+birthday	Date	"1990-01-01"
 
----
+⚠️ Important: id and _id are different properties and must not be mixed.
 
-## Project Structure (Conceptual)
+Default User in Database:
 
-```
-project-root/
-│
-├── models/              # Mongoose schemas and MongoDB interaction
-│   ├── user.model.js
-│   ├── cost.model.js
-│   └── log.model.js
-│
-├── routes/              # REST API endpoints
-│   ├── users.js
-│   ├── costs.js
-│   ├── reports.js
-│   └── admin.js
-│
-├── services/            # Business logic (including Computed Design Pattern)
-├── logs/                # Log handling (dedicated process)
-├── tests/               # Unit tests
-│
-├── app.js               # Express app initialization
-├── server.js            # Server entry point
-├── .env                 # Environment variables
-├── package.json
-└── README.md
-```
-
----
-
-## Database
-
-The system uses **MongoDB Atlas** and includes at least the following collections:
-
-### Users Collection
-
-Required fields:
-
-* `id` (Number)
-* `first_name` (String)
-* `last_name` (String)
-* `birthday` (Date)
-
-> Note: `id` and `_id` are different properties and must not be mixed.
-
-### Costs Collection
-
-Required fields:
-
-* `description` (String)
-* `category` (String) – supported categories: food, health, housing, sports, education
-* `userid` (Number)
-* `sum` (Double)
-* `date` (Date – automatically generated if not provided)
-
-### Logs Collection
-
-Log records are saved for:
-
-* Every HTTP request received by the server
-* Every endpoint access
-
----
-
-## API Endpoints
-
-### Add User
-
-**POST** `/api/add`
-
-Request Body (JSON):
-
-```json
 {
   "id": 123123,
   "first_name": "mosh",
   "last_name": "israeli",
   "birthday": "1990-01-01"
 }
-```
+2️⃣ costs (Initially Empty)
 
----
+Each document represents a single cost item.
 
-### Add Cost Item
+Property	Type
+description	String
+category	String
+userid	Number
+sum	Double
+date	Date
 
-**POST** `/api/add`
+Supported Categories:
 
-Request Body (JSON):
+food
 
-```json
+health
+
+housing
+
+sports
+
+education
+
+Costs are added only for existing users. Adding costs with dates in the past is not allowed.
+
+3️⃣ logs
+
+The logs collection stores log entries created using the Pino logging library.
+
+Log records are created:
+
+For every HTTP request received by the server
+
+Whenever an endpoint is accessed
+
+🛠️ Application
+
+The application is built using:
+
+Node.js
+
+Express.js
+
+Mongoose
+
+MongoDB Atlas
+
+Pino
+
+dotenv (.env)
+
+It exposes RESTful Web Services that can be consumed by a frontend client.
+
+🚀 API Endpoints
+1️⃣ Add User
+
+POST /api/add
+
+Purpose: Add a new user to the system.
+
+Required Parameters:
+
+id
+
+first_name
+
+last_name
+
+birthday
+
+Example Request:
+
 {
-  "description": "choco",
-  "category": "food",
-  "userid": 123123,
-  "sum": 12
+  "id": 123123,
+  "first_name": "mosh",
+  "last_name": "israeli",
+  "birthday": "1990-01-01"
 }
-```
+2️⃣ Add Cost Item
 
----
+POST /api/add
 
-### Monthly Report
+Purpose: Add a new cost item for an existing user.
 
-**GET** `/api/report?id=123123&year=2025&month=11`
+Required Parameters:
 
-The report generation follows the **Computed Design Pattern**:
+description
 
-* Reports for past months are stored and reused for future requests
-* Reports for the current or future months are calculated dynamically
+category
 
----
+userid
 
-### Get User Details
+sum
 
-**GET** `/api/users/:id`
+If the date is not provided, the server assigns the current date and time.
 
-Returns:
+Example Request:
 
-* `first_name`
-* `last_name`
-* `id`
-* `total` (total costs for the user)
+{
+  "userid": 123123,
+  "description": "Groceries",
+  "category": "food",
+  "sum": 100
+}
+3️⃣ Monthly Report
 
----
+GET /api/report
 
-### Get All Users
+Purpose: Retrieve a monthly cost report for a specific user.
 
-**GET** `/api/users`
+Required Query Parameters:
 
----
+id
 
-### Developers Team
+year
 
-**GET** `/api/about`
+month
 
-Returns a JSON document containing only:
+Computed Design Pattern:
 
-* `first_name`
-* `last_name`
+Reports for past months are calculated once and saved
 
----
+Future requests for the same past report return the stored result
 
-### Logs
+Example Request:
 
-**GET** `/api/logs`
+/api/report?id=123123&year=2025&month=11
 
----
+Example Response:
 
-## Error Handling
+{
+  "userid": 123123,
+  "year": 2025,
+  "month": 11,
+  "costs": [
+    { "food": [ { "sum": 100, "description": "Groceries", "day": 10 } ] },
+    { "health": [] },
+    { "housing": [] },
+    { "sports": [] },
+    { "education": [] }
+  ]
+}
+4️⃣ Get User Details
+
+GET /api/users/:id
+
+Purpose: Retrieve details of a specific user.
+
+Response Includes:
+
+first_name
+
+last_name
+
+id
+
+total (total sum of all user costs)
+
+5️⃣ Get All Users
+
+GET /api/users
+
+Returns a list of all users in the system.
+
+6️⃣ Developers Team
+
+GET /api/about
+
+Returns a JSON document containing only the first and last names of the development team members.
+
+7️⃣ Logs
+
+GET /api/logs
+
+Returns all log records stored in the logs collection.
+
+❗ Error Handling
 
 All error responses are returned as JSON objects and include at least:
 
-* `id`
-* `message`
+id
 
----
+message
 
-## Processes
+🔄 Processes
 
-The project includes **four processes**:
+The project includes four separate processes:
 
-1. Logs handling
-2. User-related operations
-3. Cost-related operations and reports
-4. Administrative operations (e.g., developers information)
+Logs handling
 
----
+User-related operations
 
-## Unit Tests
+Cost-related operations and reports
 
-* Unit tests were developed for all endpoints
-* The testing language and libraries were chosen by the development team
+Administrative operations (e.g., developers information)
 
----
+🧪 Unit Tests
 
-## Environment Variables (.env)
+Unit tests were developed for all endpoints
+
+The testing language and libraries were chosen by the development team
+
+⚙️ Environment Variables (.env)
 
 Example:
 
-```
 PORT=3000
 MONGO_URI=your_mongodb_atlas_connection_string
-```
+🌐 Deployment
 
----
+The project is deployed on a web-connected server
 
-## Deployment
+Each process runs independently
 
-* The project is deployed on a web-connected server
-* Each process runs separately
-* The deployment URL is submitted via the required form
+The deployment URL is provided as part of the submission requirements
 
----
+📌 Submission Default Data
 
-## Submission Default Data
+At submission time, the database contains only one imaginary user:
 
-At submission time, the database contains a single imaginary user only:
-
-```
 id: 123123
 first_name: mosh
 last_name: israeli
-```
+📝 Notes
 
----
+All incoming data is validated
 
-## Notes
+The code follows the official course JavaScript Style Guide
 
-* All incoming data is validated
-* The code follows the official course JavaScript Style Guide
-* Required comments were added to the code
-
----
+Required comments were added to the code
 
 © Final Project – Asynchronous Server-Side Development Course
