@@ -1,262 +1,154 @@
-Cost Manager RESTful Web Services 
+#  Cost Manager RESTful Web Services 
 
-Welcome to the Cost Manager RESTful Web Services project! This application was developed as part of the Asynchronous Server-Side Development course. It provides a backend system for managing users’ expenses, generating monthly reports, and supporting efficient cost tracking and budgeting.
+Welcome to the **Cost Manager RESTful Web Services** project.
+This backend application was developed as part of the *Asynchronous Server-Side Development* course and enables users to manage expenses, track spending, and generate monthly cost reports.
 
-The project strictly follows the official course requirements and implements all mandatory features, endpoints, and architectural constraints.
+The project fully complies with the official course requirements.
 
-📊 Database
+---
 
-Database Type: MongoDB (MongoDB Atlas)
+## 📊 Database
 
-The database design follows the Computed Design Pattern to efficiently generate and store monthly reports for past months.
+**Database Type:** MongoDB (MongoDB Atlas)
 
-Collections
-1️⃣ users (Default User Exists)
-Property	Type	Example
-id	Number	123123
-first_name	String	"mosh"
-last_name	String	"israeli"
-birthday	Date	"1990-01-01"
+The database design implements the **Computed Design Pattern** for efficient generation and reuse of monthly reports.
 
-⚠️ Important: id and _id are different properties and must not be mixed.
+### Collections
 
-Default User in Database:
+#### users
 
+* `id` (Number)
+* `first_name` (String)
+* `last_name` (String)
+* `birthday` (Date)
+
+⚠️ `id` and `_id` are different properties and are not mixed.
+
+**Default User:**
+
+```json
 {
   "id": 123123,
   "first_name": "mosh",
   "last_name": "israeli",
   "birthday": "1990-01-01"
 }
-2️⃣ costs (Initially Empty)
+```
 
-Each document represents a single cost item.
+#### costs
 
-Property	Type
-description	String
-category	String
-userid	Number
-sum	Double
-date	Date
+* `description` (String)
+* `category` (String)
+* `userid` (Number)
+* `sum` (Double)
+* `date` (Date)
 
-Supported Categories:
+**Supported Categories:** food, health, housing, sports, education
 
-food
+#### logs
 
-health
+* Stores log records created using **Pino**
+* Logs are written for every HTTP request and endpoint access
 
-housing
+---
 
-sports
+## 🛠️ Application
 
-education
+Built with **Node.js**, **Express.js**, **Mongoose**, **MongoDB Atlas**, **Pino**, and **dotenv**.
 
-Costs are added only for existing users. Adding costs with dates in the past is not allowed.
+---
 
-3️⃣ logs
+## 🚀 API Endpoints
 
-The logs collection stores log entries created using the Pino logging library.
+### Add User
 
-Log records are created:
+**POST** `/api/add`
 
-For every HTTP request received by the server
+Required: `id`, `first_name`, `last_name`, `birthday`
 
-Whenever an endpoint is accessed
+---
 
-🛠️ Application
+### Add Cost Item
 
-The application is built using:
+**POST** `/api/add`
 
-Node.js
+Required: `description`, `category`, `userid`, `sum`
 
-Express.js
+If the date is not provided, the server assigns the current date.
 
-Mongoose
+---
 
-MongoDB Atlas
+### Monthly Report
 
-Pino
+**GET** `/api/report?id=USER_ID&year=YYYY&month=MM`
 
-dotenv (.env)
+Returns a monthly report grouped by categories.
+Past-month reports are stored according to the **Computed Design Pattern**.
 
-It exposes RESTful Web Services that can be consumed by a frontend client.
+---
 
-🚀 API Endpoints
-1️⃣ Add User
+### Get User Details
 
-POST /api/add
+**GET** `/api/users/:id`
 
-Purpose: Add a new user to the system.
+Returns: `first_name`, `last_name`, `id`, `total`
 
-Required Parameters:
+---
 
-id
+### Additional Endpoints
 
-first_name
+* **GET** `/api/users` – list of all users
+* **GET** `/api/about` – developers first and last names only
+* **GET** `/api/logs` – list of all logs
 
-last_name
+---
 
-birthday
+## ❗ Error Handling
 
-Example Request:
+All errors are returned as JSON objects containing at least:
 
-{
-  "id": 123123,
-  "first_name": "mosh",
-  "last_name": "israeli",
-  "birthday": "1990-01-01"
-}
-2️⃣ Add Cost Item
+* `id`
+* `message`
 
-POST /api/add
+---
 
-Purpose: Add a new cost item for an existing user.
+## 🔄 Processes
 
-Required Parameters:
+The system is implemented using **four processes**:
 
-description
+1. Logs handling
+2. Users handling
+3. Costs and reports handling
+4. Administrative operations
 
-category
+---
 
-userid
+## 🧪 Unit Tests
 
-sum
+Unit tests were developed for all endpoints.
 
-If the date is not provided, the server assigns the current date and time.
+---
 
-Example Request:
+## ⚙️ Environment Variables
 
-{
-  "userid": 123123,
-  "description": "Groceries",
-  "category": "food",
-  "sum": 100
-}
-3️⃣ Monthly Report
-
-GET /api/report
-
-Purpose: Retrieve a monthly cost report for a specific user.
-
-Required Query Parameters:
-
-id
-
-year
-
-month
-
-Computed Design Pattern:
-
-Reports for past months are calculated once and saved
-
-Future requests for the same past report return the stored result
-
-Example Request:
-
-/api/report?id=123123&year=2025&month=11
-
-Example Response:
-
-{
-  "userid": 123123,
-  "year": 2025,
-  "month": 11,
-  "costs": [
-    { "food": [ { "sum": 100, "description": "Groceries", "day": 10 } ] },
-    { "health": [] },
-    { "housing": [] },
-    { "sports": [] },
-    { "education": [] }
-  ]
-}
-4️⃣ Get User Details
-
-GET /api/users/:id
-
-Purpose: Retrieve details of a specific user.
-
-Response Includes:
-
-first_name
-
-last_name
-
-id
-
-total (total sum of all user costs)
-
-5️⃣ Get All Users
-
-GET /api/users
-
-Returns a list of all users in the system.
-
-6️⃣ Developers Team
-
-GET /api/about
-
-Returns a JSON document containing only the first and last names of the development team members.
-
-7️⃣ Logs
-
-GET /api/logs
-
-Returns all log records stored in the logs collection.
-
-❗ Error Handling
-
-All error responses are returned as JSON objects and include at least:
-
-id
-
-message
-
-🔄 Processes
-
-The project includes four separate processes:
-
-Logs handling
-
-User-related operations
-
-Cost-related operations and reports
-
-Administrative operations (e.g., developers information)
-
-🧪 Unit Tests
-
-Unit tests were developed for all endpoints
-
-The testing language and libraries were chosen by the development team
-
-⚙️ Environment Variables (.env)
-
-Example:
-
+```
 PORT=3000
-MONGO_URI=your_mongodb_atlas_connection_string
-🌐 Deployment
+MONGO_URI=MongoDB_Atlas_Connection_String
+```
 
-The project is deployed on a web-connected server
+---
 
-Each process runs independently
+## 🌐 Deployment
 
-The deployment URL is provided as part of the submission requirements
+The application is deployed on a web-connected server, with each process running independently.
 
-📌 Submission Default Data
+---
 
-At submission time, the database contains only one imaginary user:
+## 📝 Notes
 
-id: 123123
-first_name: mosh
-last_name: israeli
-📝 Notes
+* All incoming data is validated
+* The code follows the official JavaScript Style Guide
 
-All incoming data is validated
-
-The code follows the official course JavaScript Style Guide
-
-Required comments were added to the code
+---
 
 © Final Project – Asynchronous Server-Side Development Course
