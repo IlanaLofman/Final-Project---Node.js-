@@ -3,14 +3,14 @@ const router = express.Router();
 const Cost = require('../models/cost');
 
 // Allowed categories for cost items
-const validCategories = ['food', 'health', 'housing', 'sport', 'education'];
+const validCategories = ['food', 'health', 'housing', 'sports', 'education'];
 
 /**
  * @route POST /api/add
  * @description Adds a new cost item to the database
  * @access Public
  */
-router.post('/add', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const { userid, description, category, sum, year, month, day } = req.body;
 
