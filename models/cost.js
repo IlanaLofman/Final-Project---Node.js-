@@ -5,12 +5,12 @@ const Schema = mongoose.Schema;
  * Allowed categories for cost items
  * @constant {string[]}
  */
-const validCategories = ['food', 'health', 'housing', 'sport', 'education'];
+const validCategories = ['food', 'health', 'housing', 'sports', 'education'];
 
 /**
  * Cost Schema for MongoDB
  * @typedef {Object} Cost
- * @property {string} userid - ID of the user associated with the cost (required).
+ * @property {number} userid - ID of the user associated with the cost (required).
  * @property {string} description - Description of the cost (required).
  * @property {string} category - Category of the cost. Must be one of the valid categories (required).
  * @property {number} sum - Amount of the cost (required).
@@ -20,7 +20,7 @@ const validCategories = ['food', 'health', 'housing', 'sport', 'education'];
  */
 const CostsSchema = new Schema({
     userid: {
-        type: String,
+        type: Number,
         required: true,
     },
     description: {
@@ -30,7 +30,7 @@ const CostsSchema = new Schema({
     category: {
         type: String,
         required: true,
-        enum: validCategories, // Validate category against allowed values
+        enum: validCategories,
     },
     sum: {
         type: Number,
@@ -42,12 +42,12 @@ const CostsSchema = new Schema({
     },
     month: {
         type: Number,
-        default: () => new Date().getMonth() + 1, // Months are 0-indexed in JavaScript
+        default: () => new Date().getMonth() + 1,
     },
     day: {
         type: Number,
         default: () => new Date().getDate(),
-    }
+    },
 });
 
 /**

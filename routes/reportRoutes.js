@@ -1,67 +1,122 @@
 const express = require('express');
 const router = express.Router();
 const Cost = require('../models/cost');
+const Report = require('../models/report'); // <-- add this model (Computed Design Pattern)
 
-// Predefined categories
-const validCategories = ['food', 'health', 'housing', 'sport', 'education'];
+// Predefined categories (must match the project requirements)
+const validCategories = ['food', 'education', 'health', 'housing', 'sports'];
 
-/**
- * @route GET /api/report
- * @description Retrieve a monthly report of costs grouped by category
- * @access Public
- * @param {Object} req - Express request object
- * @param {Object} req.query - Query parameters
- * @param {string} req.query.id - The user ID
- * @param {number} req.query.year - The year
- * @param {number} req.query.month - The month
- * @returns {JSON} - Report with costs grouped by category
- */
+/*
+++c Computed Design Pattern:
+   - When a report is requested for a past month, the server saves the computed report in DB.
+   - Next time the same past-month report is requested, the server returns the saved report (no recompute).
+*/
 router.get('/', async (req, res) => {
     try {
         const { id, year, month } = req.query;
 
-        // Validate required query parameters
+        // ++c Validate required query parameters
         if (!id || !year || !month) {
-            return res.status(400).json({ error: 'One or more required properties are missing' });
+            return res.status(400).json({
+                id: 'validation_error',
+                message: 'Missing required query parameters: id, year, month',
+            });
         }
 
-        // Retrieve costs for the specified user, year, and month
+        // ++c Validate and convert id/year/month
+        const userId = Number(id);
+        if (!Number.isFinite(userId)) {
+            return res.status(400).json({ id: 'validation_error', message: 'id must be a number' });
+        }
+
+        const requestedYear = parseInt(year, 10);
+        const requestedMonth = parseInt(month, 10);
+
+        if (!Number.isFinite(requestedYear) || !Number.isFinite(requestedMonth)) {
+            return res.status(400).json({ id: 'validation_error', message: 'year and month must be numbers' });
+        }
+
+        if (requestedMonth < 1 || requestedMonth > 12) {
+            return res.status(400).json({ id: 'validation_error', message: 'Invalid month input' });
+        }
+
+        // ++c Decide if requested month is in the past (for caching)
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+
+        const isPastMonth =
+            requestedYear < currentYear || (requestedYear === currentYear && requestedMonth < currentMonth);
+
+        // ++c If past month: try to return cached report first
+        if (isPastMonth) {
+            const cached = await Report.findOne({ userid: userId, year: requestedYear, month: requestedMonth });
+            if (cached) {
+                return res.status(200).json({
+                    userid: cached.userid,
+                    year: cached.year,
+                    month: cached.month,
+                    costs: cached.costs,
+                });
+            }
+        }
+
+        // ++c Retrieve costs for the specified user, year, and month
         const costs = await Cost.find({
-            userid: id,
-            year: parseInt(year),
-            month: parseInt(month),
+            userid: userId,
+            year: requestedYear,
+            month: requestedMonth,
         });
 
-        // Initialize grouped costs structure with all categories
+        // ++c Initialize grouped costs structure with all categories
         const groupedCosts = validCategories.reduce((acc, category) => {
             acc[category] = [];
             return acc;
         }, {});
 
-        // Populate grouped costs with data
+        // ++c Populate grouped costs with data (ignore unexpected categories safely)
         costs.forEach((cost) => {
-            groupedCosts[cost.category].push({
+            let category = (cost.category || '').toLowerCase();
+
+            // ++c Safety: if old data had "sport", map it to "sports"
+            if (category === 'sport') {
+                category = 'sports';
+            }
+
+            if (!groupedCosts[category]) {
+                return;
+            }
+
+            groupedCosts[category].push({
                 sum: cost.sum,
                 description: cost.description,
                 day: cost.day,
             });
         });
 
-        // Build the final report structure
+        // ++c Build the final report structure (array of objects, one per category)
         const report = {
-            userid: id,
-            year: parseInt(year),
-            month: parseInt(month),
-            costs: Object.entries(groupedCosts).map(([category, items]) => ({
-                [category]: items,
+            userid: userId,
+            year: requestedYear,
+            month: requestedMonth,
+            costs: validCategories.map((category) => ({
+                [category]: groupedCosts[category],
             })),
         };
 
-        // Return the report
-        res.status(200).json(report);
+        // ++c If past month: save the computed report for future requests
+        if (isPastMonth) {
+            try {
+                await Report.create(report);
+            } catch (e) {
+                // ++c Ignore duplicate cache insert (race condition) or save errors
+            }
+        }
+
+        return res.status(200).json(report);
     } catch (error) {
         console.error('Error retrieving monthly report:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ id: 'internal_error', message: 'Internal server error' });
     }
 });
 

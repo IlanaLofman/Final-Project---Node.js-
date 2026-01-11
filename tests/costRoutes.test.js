@@ -30,7 +30,7 @@ describe('POST /api/add', () => {
         });
 
         expect(response.statusCode).toBe(400);
-        expect(response.body).toHaveProperty('error', 'Invalid category. Allowed categories are: food, health, housing, sport, education');
+        expect(response.body).toHaveProperty('error', 'Invalid category. Allowed categories are: food, health, housing, sports, education');
     });
 
     it('should return an error for missing required fields', async () => {

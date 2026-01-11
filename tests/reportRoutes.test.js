@@ -29,7 +29,7 @@ describe('GET /api/report', () => {
         // Validate grouped categories structure
         const categoryNames = response.body.costs.map((c) => Object.keys(c)[0]);
         expect(categoryNames).toEqual(
-            expect.arrayContaining(['food', 'health', 'housing', 'sport', 'education'])
+            expect.arrayContaining(['food', 'health', 'housing', 'sports', 'education'])
         );
     });
 
