@@ -8,7 +8,7 @@ async function requestLogger(req, res, next) {
         await Log.create({
             method: req.method,
             url: req.originalUrl,
-            timestamp: new Date(),
+            time: new Date(),
         });
     } catch (err) {
         // ++c If logging fails, we don't block the request

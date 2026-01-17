@@ -20,7 +20,7 @@ describe('GET /api/report', () => {
 
         // Assertions for valid response
         expect(response.statusCode).toBe(200);
-        expect(response.body).toHaveProperty('userid', '123123'); // Ensuring userid matches
+        expect(response.body).toHaveProperty('userid', 123123); // Ensuring userid matches
         expect(response.body).toHaveProperty('year', 2025);
         expect(response.body).toHaveProperty('month', 1);
         expect(response.body).toHaveProperty('costs'); // Ensures the "costs" key exists
@@ -43,7 +43,7 @@ describe('GET /api/report', () => {
 
         // Assertions for missing query parameters
         expect(response.statusCode).toBe(400);
-        expect(response.body).toHaveProperty('error', 'One or more required properties are missing');
+        expect(response.body).toHaveProperty('message', 'Missing required query parameters: id, year, month');
     });
 });
 

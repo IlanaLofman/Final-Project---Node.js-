@@ -1,7 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const Cost = require('../models/cost');
-const Report = require('../models/report'); // <-- add this model (Computed Design Pattern)
+
+// ++c Lazy load models - they will use the connection from the server
+let Cost, Report;
+
+function loadModels() {
+    if (!Cost) {
+        Cost = require('../models/cost');
+    }
+    if (!Report) {
+        Report = require('../models/report');
+    }
+}
 
 // Predefined categories (must match the project requirements)
 const validCategories = ['food', 'education', 'health', 'housing', 'sports'];
@@ -13,6 +23,7 @@ const validCategories = ['food', 'education', 'health', 'housing', 'sports'];
 */
 router.get('/', async (req, res) => {
     try {
+        loadModels(); // Ensure models are loaded
         const { id, year, month } = req.query;
 
         // ++c Validate required query parameters
@@ -62,11 +73,17 @@ router.get('/', async (req, res) => {
         }
 
         // ++c Retrieve costs for the specified user, year, and month
+        console.log('About to query Cost.find with:', { userid: userId, year: requestedYear, month: requestedMonth });
+        console.log('Cost model:', Cost ? 'loaded' : 'not loaded');
+        console.log('Mongoose connection state:', require('mongoose').connection.readyState);
+        
         const costs = await Cost.find({
             userid: userId,
             year: requestedYear,
             month: requestedMonth,
         });
+        
+        console.log('Query succeeded, found', costs.length, 'costs');
 
         // ++c Initialize grouped costs structure with all categories
         const groupedCosts = validCategories.reduce((acc, category) => {
@@ -115,7 +132,9 @@ router.get('/', async (req, res) => {
 
         return res.status(200).json(report);
     } catch (error) {
-        console.error('Error retrieving monthly report:', error);
+        console.error('Error retrieving monthly report:', error.message);
+        console.error('Stack:', error.stack);
+        console.error('Error name:', error.name);
         return res.status(500).json({ id: 'internal_error', message: 'Internal server error' });
     }
 });

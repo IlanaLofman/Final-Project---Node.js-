@@ -1,39 +1,35 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-/**
- * Allowed categories for cost items
- * @constant {string[]}
- */
+/*
+c Allowed categories for cost items (as per project requirements)
+*/
 const validCategories = ['food', 'health', 'housing', 'sports', 'education'];
 
-/**
- * Cost Schema for MongoDB
- * @typedef {Object} Cost
- * @property {number} userid - ID of the user associated with the cost (required).
- * @property {string} description - Description of the cost (required).
- * @property {string} category - Category of the cost. Must be one of the valid categories (required).
- * @property {number} sum - Amount of the cost (required).
- * @property {number} year - Year of the cost. Defaults to the current year.
- * @property {number} month - Month of the cost. Defaults to the current month.
- * @property {number} day - Day of the cost. Defaults to the current day.
- */
+/*
+c Cost Schema for MongoDB
+  - description: String (required)
+  - category: String, enum from validCategories (required)
+  - userid: Number (required, references user.id)
+  - sum: Decimal128 (Double type for precise decimal values)
+  - year, month, day: Number (defaults to current date if not provided)
+*/
 const CostsSchema = new Schema({
-    userid: {
-        type: Number,
-        required: true,
-    },
     description: {
         type: String,
         required: true,
     },
     category: {
         type: String,
-        required: true,
         enum: validCategories,
+        required: true,
+    },
+    userid: {
+        type: Number,
+        required: true,
     },
     sum: {
-        type: Number,
+        type: mongoose.Schema.Types.Decimal128,
         required: true,
     },
     year: {
@@ -50,10 +46,6 @@ const CostsSchema = new Schema({
     },
 });
 
-/**
- * Cost Model for MongoDB
- * @type {mongoose.Model<Cost>}
- */
-const Cost = mongoose.model('Cost', CostsSchema);
+const Cost = mongoose.models.Cost || mongoose.model('Cost', CostsSchema);
 
 module.exports = Cost;

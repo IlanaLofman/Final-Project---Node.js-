@@ -17,8 +17,8 @@ describe('GET /api/about', () => {
         // Assertions for the developers' list
         expect(response.statusCode).toBe(200);
         expect(response.body).toBeInstanceOf(Array); // Response should be an array
-        expect(response.body[0]).toHaveProperty('firstname');
-        expect(response.body[0]).toHaveProperty('lastname');
+        expect(response.body[0]).toHaveProperty('first_name');
+        expect(response.body[0]).toHaveProperty('last_name');
     });
 });
 

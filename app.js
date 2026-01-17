@@ -1,77 +1,78 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const createError = require('http-errors');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
 
-/**
- * Middleware setup
- */
-app.use(logger('dev')); // Log HTTP requests
-app.use(express.json()); // Parse JSON request bodies
-app.use(express.urlencoded({ extended: false })); // Parse URL-encoded request bodies
-app.use(cookieParser()); // Parse cookies
+/*
+++c Testing app - combines all routes for integration testing
+*/
 
-/**
- * Connect to MongoDB Atlas
- */
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// ++c Import and use request logger
+const requestLogger = require('./utils/requestLogger');
+app.use(requestLogger);
+
+/*
+c MongoDB Connection
+*/
 mongoose
-    .connect(process.env.MONGO_URI) // Ensure the connection URI is set in the .env file
+    .connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB Connected'))
     .catch((error) => {
         console.error('MongoDB Connection Error:', error.message);
         process.exit(1);
     });
 
-// Import routes
-const userRoutes = require('./routes/userRoutes');       // User-related routes
-const aboutRoutes = require('./routes/aboutRoutes');     // Developer team information routes
-const costRoutes = require('./routes/costRoutes');       // Cost management routes
-const reportRoutes = require('./routes/reportRoutes');   // Report generation routes
+// ++c Import routes
+const userRoutes = require('./routes/userRoutes');
+const addUserRoutes = require('./routes/addUserRoutes');
+const costRoutes = require('./routes/costRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const aboutRoutes = require('./routes/aboutRoutes');
+const logRoutes = require('./routes/logRoutes');
 
-/**
- * Route for the home page
- */
+// ++c Home route
 app.get('/', (req, res) => {
-    res.send('Welcome to the Cost Manager API!');
+    res.send('Cost Manager API');
 });
 
-// Use routes
-app.use('/api/users', userRoutes);       // User-related endpoints
-app.use('/api/about', aboutRoutes);      // Developers' information endpoint
-app.use('/api', costRoutes);             // Cost addition endpoints - Fix: Ensures /api/add works
-app.use('/api/report', reportRoutes);    // Monthly report endpoints
+// ++c Mount all routes for testing
+app.use('/api/users', userRoutes);
+app.use('/api/about', aboutRoutes);
+app.use('/api/logs', logRoutes);
+app.use('/api/report', reportRoutes);
+// ++c These must come last to avoid conflicts
+app.use('/api', costRoutes);
+app.use('/api', addUserRoutes);
 
-/**
- * Catch 404 and forward to error handler
- */
+/*
+c Catch 404 and forward to error handler
+*/
 app.use((req, res, next) => {
-    next(createError(404)); // Create a 404 error if route not found
+    res.status(404).json({ id: 'not_found', message: 'Route not found' });
 });
 
-/**
- * Error handler
- */
+/*
+c Error handler
+*/
 app.use((err, req, res, next) => {
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-    res.status(err.status || 500);
-    res.json({ error: res.locals.message });
+    res.status(err.status || 500).json({
+        id: 'error',
+        message: err.message || 'Internal server error'
+    });
 });
 
-// Export the app for testing
+// ++c Export for testing
 module.exports = app;
 
-/**
- * Start the server if not in test mode
- */
+/*
+c Start server only if not in test mode
+*/
 if (process.env.NODE_ENV !== 'test') {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {

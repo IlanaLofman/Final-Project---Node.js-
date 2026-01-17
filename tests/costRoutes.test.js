@@ -15,10 +15,10 @@ describe('POST /api/add', () => {
         });
 
         expect(response.statusCode).toBe(201);
-        expect(response.body.cost).toHaveProperty('userid', '123123');
-        expect(response.body.cost).toHaveProperty('description', 'Groceries');
-        expect(response.body.cost).toHaveProperty('category', 'food');
-        expect(response.body.cost).toHaveProperty('sum', 50);
+        expect(response.body).toHaveProperty('userid', 123123);
+        expect(response.body).toHaveProperty('description', 'Groceries');
+        expect(response.body).toHaveProperty('category', 'food');
+        expect(response.body).toHaveProperty('sum', 50);
     });
 
     it('should return an error for an invalid category', async () => {
@@ -30,7 +30,7 @@ describe('POST /api/add', () => {
         });
 
         expect(response.statusCode).toBe(400);
-        expect(response.body).toHaveProperty('error', 'Invalid category. Allowed categories are: food, health, housing, sports, education');
+        expect(response.body).toHaveProperty('message', 'Invalid category. Allowed categories are: food, health, housing, sports, education');
     });
 
     it('should return an error for missing required fields', async () => {
@@ -39,7 +39,7 @@ describe('POST /api/add', () => {
         });
 
         expect(response.statusCode).toBe(400);
-        expect(response.body).toHaveProperty('error', 'One or more required properties are missing');
+        expect(response.body).toHaveProperty('message', 'One or more required properties are missing');
     });
 });
 

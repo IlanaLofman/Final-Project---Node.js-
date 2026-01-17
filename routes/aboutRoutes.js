@@ -9,8 +9,9 @@ router.get('/', (req, res) => {
     try {
         // ++c Hardcoded team members (change to your real names)
         const team = [
-            { first_name: 'mosh', last_name: 'israeli' },
+            { first_name: 'ilana', last_name: 'lofman' },
             { first_name: 'shay', last_name: 'oz' },
+            { first_name: 'rachel', last_name: 'salomon' },
         ];
 
         return res.status(200).json(team);

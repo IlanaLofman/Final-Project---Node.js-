@@ -1,21 +1,17 @@
 const mongoose = require('mongoose');
 
 /*
-++c Log schema for saving HTTP requests
+Log schema for saving HTTP requests
 */
 const logSchema = new mongoose.Schema({
-    method: {
-        type: String,
-        required: true,
-    },
-    url: {
-        type: String,
-        required: true,
-    },
-    timestamp: {
+    method: String,
+    url: String,
+    status: Number,
+    message: String,
+    time: {
         type: Date,
-        required: true,
-    },
+        default: Date.now
+    }
 });
 
-module.exports = mongoose.model('Log', logSchema);
+module.exports = mongoose.models.Log || mongoose.model('Log', logSchema);

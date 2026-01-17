@@ -3,39 +3,64 @@ const router = express.Router();
 const User = require('../models/user');
 const Cost = require('../models/cost');
 
-/**
- * @route GET /api/users/:id
- * @description Fetch user details and total costs by user ID
- * @access Public
- * @param {Object} req - Express request object
- * @param {Object} req.params - The route parameters
- * @param {string} req.params.id - The ID of the user to retrieve
- * @param {Object} res - Express response object
- * @returns {JSON} - User details including first name, last name, ID, and total costs
- */
+/*
+++c GET /api/users/:id - Fetch user details and total costs
+   Returns: first_name, last_name, id, total
+*/
 router.get('/:id', async (req, res) => {
     try {
-        const { id } = req.params; // Extract the user ID from the request
-        const user = await User.findById(id); // Query the user using `_id`
+        const { id } = req.params;
+        const numericId = Number(id);
 
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+        // ++c Invalid ID format check
+        if (!Number.isFinite(numericId)) {
+            return res.status(404).json({
+                id: 'user_not_found',
+                message: 'User not found',
+            });
         }
 
-        // Aggregate total costs for the user
+        const user = await User.findOne({ id: numericId });
+
+        if (!user) {
+            return res.status(404).json({
+                id: 'user_not_found',
+                message: 'User not found',
+            });
+        }
+
+        // ++c Aggregate total costs for the user
         const totalCosts = await Cost.aggregate([
-            { $match: { userid: id } }, // Match costs by user ID
-            { $group: { _id: null, total: { $sum: '$sum' } } }, // Sum the "sum" field
+            { $match: { userid: numericId } },
+            { $group: { _id: null, total: { $sum: '$sum' } } },
         ]);
 
-        res.json({
+        return res.status(200).json({
             first_name: user.first_name,
             last_name: user.last_name,
-            id: user._id, // Return `_id` as `id` for consistency in the response
-            total: totalCosts[0]?.total || 0, // Default to 0 if no costs exist
+            id: user.id,
+            total: totalCosts[0]?.total || 0,
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({
+            id: 'internal_error',
+            message: 'Internal server error',
+        });
+    }
+});
+
+/*
+++c GET /api/users - Fetch all users
+*/
+router.get('/', async (req, res) => {
+    try {
+        const users = await User.find({});
+        return res.status(200).json(users);
+    } catch (error) {
+        return res.status(500).json({
+            id: 'internal_error',
+            message: 'Internal server error',
+        });
     }
 });
 

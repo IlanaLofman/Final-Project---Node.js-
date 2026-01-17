@@ -1,17 +1,28 @@
 const express = require('express');
 const router = express.Router();
-const Cost = require('../models/cost');
+
+// ++c Lazy load models - they will use the connection from the server
+let Cost, User;
+
+function loadModels() {
+    if (!Cost) {
+        Cost = require('../models/cost');
+    }
+    if (!User) {
+        User = require('../models/user');
+    }
+}
 
 // Allowed categories for cost items (project requirements)
 const validCategories = ['food', 'health', 'housing', 'sports', 'education'];
 
-/**
- * @route POST /api/add
- * @description Adds a new cost item to the database
- * @access Public
- */
-router.post('/', async (req, res) => {
+/*
+++c POST /api/add - Add a new cost item
+   Validates: userid exists, description, category, sum
+*/
+router.post('/add', async (req, res) => {
     try {
+        loadModels(); // Ensure models are loaded
         const { userid, description, category, sum, year, month, day } = req.body;
 
         // ++c Validate required properties
@@ -28,6 +39,15 @@ router.post('/', async (req, res) => {
             return res.status(400).json({
                 id: 'validation_error',
                 message: 'userid must be a number',
+            });
+        }
+
+        // ++c Verify user exists in database
+        const userExists = await User.findOne({ id: numericUserId });
+        if (!userExists) {
+            return res.status(404).json({
+                id: 'user_not_found',
+                message: 'User with this id does not exist',
             });
         }
 
@@ -88,7 +108,15 @@ router.post('/', async (req, res) => {
         const savedCost = await newCost.save();
 
         // ++c Return the added cost (as required)
-        return res.status(201).json(savedCost);
+        return res.status(201).json({
+            userid: savedCost.userid,
+            description: savedCost.description,
+            category: savedCost.category,
+            sum: parseFloat(savedCost.sum.toString()),
+            year: savedCost.year,
+            month: savedCost.month,
+            day: savedCost.day,
+        });
     } catch (error) {
         console.error('Error adding cost:', error);
         return res.status(500).json({

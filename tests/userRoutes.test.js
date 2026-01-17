@@ -32,7 +32,8 @@ describe('GET /api/users/:id', () => {
 
         // Assertions for invalid user ID
         expect(response.statusCode).toBe(404);
-        expect(response.body).toHaveProperty('error');
+        expect(response.body).toHaveProperty('id');
+        expect(response.body).toHaveProperty('message');
     });
 });
 
