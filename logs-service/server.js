@@ -25,7 +25,7 @@ async function startServer() {
 
         app.use('/api/logs', logRoutes);
 
-        const port = process.env.LOGS_PORT || 3003;
+        const port = process.env.PORT || 3003;
         app.listen(port, () => pino.info(`Logs service listening on port ${port}`));
     } catch (error) {
         pino.error('MongoDB Connection Error: ' + error.message);

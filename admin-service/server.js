@@ -25,7 +25,7 @@ async function startServer() {
 
         app.use('/api/about', aboutRoutes);
 
-        const port = process.env.ADMIN_PORT || 3004;
+        const port = process.env.PORT || 3004;
         app.listen(port, () => pino.info(`Admin service listening on port ${port}`));
     } catch (error) {
         pino.error('MongoDB Connection Error: ' + error.message);

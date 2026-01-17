@@ -51,7 +51,7 @@ async function startServer() {
         app.use('/api', costRoutes);
         app.use('/api/report', reportRoutes);
 
-        const port = process.env.COSTS_PORT || 3002;
+        const port = process.env.PORT || 3002;
         app.listen(port, () => console.log(`Costs service listening on port ${port}`));
     } catch (error) {
         pino.error('MongoDB Connection Error: ' + error.message);

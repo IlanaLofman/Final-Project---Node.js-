@@ -27,7 +27,7 @@ async function startServer() {
         app.use('/api/users', userRoutes);
         app.use('/api', addUserRoutes);
 
-        const port = process.env.USERS_PORT || 3001;
+        const port = process.env.PORT || 3001;
         app.listen(port, () => pino.info(`Users service listening on port ${port}`));
     } catch (error) {
         pino.error('MongoDB Connection Error: ' + error.message);

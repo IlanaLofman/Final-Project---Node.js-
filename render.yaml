@@ -1,0 +1,55 @@
+# render.yaml
+# Blueprint for deploying the multi-service cost manager application
+
+services:
+  - type: web
+    name: costs-service
+    runtime: node
+    plan: free
+    rootDir: ./costs-service
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: MONGO_URI
+        sync: false # Set this value in the Render dashboard
+      - key: NODE_ENV
+        value: production
+
+  - type: web
+    name: users-service
+    runtime: node
+    plan: free
+    rootDir: ./users-service
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: MONGO_URI
+        sync: false # Set this value in the Render dashboard
+      - key: NODE_ENV
+        value: production
+
+  - type: web
+    name: logs-service
+    runtime: node
+    plan: free
+    rootDir: ./logs-service
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: MONGO_URI
+        sync: false # Set this value in the Render dashboard
+      - key: NODE_ENV
+        value: production
+
+  - type: web
+    name: admin-service
+    runtime: node
+    plan: free
+    rootDir: ./admin-service
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: MONGO_URI
+        sync: false # Set this value in the Render dashboard
+      - key: NODE_ENV
+        value: production
