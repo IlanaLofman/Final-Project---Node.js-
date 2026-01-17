@@ -1,14 +1,14 @@
 # render.yaml
 # Blueprint for deploying the multi-service cost manager application
+# Strategy: Install all dependencies at the root and start each service from there.
 
 services:
   - type: web
     name: costs-service
     runtime: node
     plan: free
-    rootDir: ./costs-service
     buildCommand: npm install
-    startCommand: node server.js
+    startCommand: node costs-service/server.js
     envVars:
       - key: MONGO_URI
         sync: false # Set this value in the Render dashboard
@@ -19,9 +19,8 @@ services:
     name: users-service
     runtime: node
     plan: free
-    rootDir: ./users-service
     buildCommand: npm install
-    startCommand: node server.js
+    startCommand: node users-service/server.js
     envVars:
       - key: MONGO_URI
         sync: false # Set this value in the Render dashboard
@@ -32,9 +31,8 @@ services:
     name: logs-service
     runtime: node
     plan: free
-    rootDir: ./logs-service
     buildCommand: npm install
-    startCommand: node server.js
+    startCommand: node logs-service/server.js
     envVars:
       - key: MONGO_URI
         sync: false # Set this value in the Render dashboard
@@ -45,9 +43,8 @@ services:
     name: admin-service
     runtime: node
     plan: free
-    rootDir: ./admin-service
     buildCommand: npm install
-    startCommand: node server.js
+    startCommand: node admin-service/server.js
     envVars:
       - key: MONGO_URI
         sync: false # Set this value in the Render dashboard
